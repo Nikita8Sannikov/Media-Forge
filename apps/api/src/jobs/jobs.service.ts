@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateJobDto, OutputFormat } from './dto/create-job.dto.js';
-import { randomUUID } from 'node:crypto';
-import sharp from 'sharp';
+import { CreateJobDto } from './dto/create-job.dto.js';
+import { ImageProcessingService } from '../image-processing/image-processing.service.js';
 
 @Injectable()
 export class JobsService {
+    constructor(
+        private readonly imageProcessingService: ImageProcessingService,
+      ) {}
   async create(dto: CreateJobDto, file: Express.Multer.File): Promise<Buffer> {
-    console.log('[JobsService] processing started');
+    console.log('[2] JobsService.create()');
 
     console.log('[JobsService] received file:', {
       originalName: file.originalname,
@@ -14,63 +16,9 @@ export class JobsService {
       size: file.size,
     });
 
-    // const job = {
-    //   id: randomUUID(),
-    //   status: 'created',
-    //   params: dto,
-    //   file: {
-    //     originalName: file.originalname,
-    //     mimetype: file.mimetype,
-    //     size: file.size,
-    //   },
-    // };
-    let image = sharp(file.buffer).resize({
-        width: dto.width,
-        height: dto.height,
-        fit: 'inside',
-        withoutEnlargement: true,
-      });
+    const outputBuffer = await this.imageProcessingService.process(file.buffer, dto);
 
-      switch (dto.outputFormat) {
-        case OutputFormat.JPEG:
-          image = image.jpeg({
-            quality: dto.quality,
-          });
-          break;
-  
-        case OutputFormat.PNG:
-          image = image.png({
-            quality: dto.quality,
-          });
-          break;
-  
-        case OutputFormat.WEBP:
-          image = image.webp({
-            quality: dto.quality,
-          });
-          break;
-      }  
-
-      const outputBuffer = await image.toBuffer();
-
-      const metadata = await sharp(outputBuffer).metadata();
-
-      console.log('[JobsService] output metadata:', {
-        width: metadata.width,
-        height: metadata.height,
-        format: metadata.format,
-        size: outputBuffer.length,
-      });
-
-
-    console.log('Buffer size:', file.buffer.length);
-    console.log('First bytes:', file.buffer.subarray(0, 10));
-    // console.log('[JobsService] job created:', job);
-
-    console.log('[JobsService] processing completed');
-    console.log('[JobsService] output size:', outputBuffer.length);
-    // return job;
-
+    console.log('[6] JobsService got processed Buffer');
     return outputBuffer;
   }
 }

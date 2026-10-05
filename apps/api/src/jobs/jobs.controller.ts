@@ -3,7 +3,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import type { Express } from 'express';
 
 import { JobsService } from './jobs.service.js';
-import { CreateJobDto, OutputFormat } from './dto/create-job.dto.js';
+import { CreateJobDto } from './dto/create-job.dto.js';
+import { ImageOutputFormat } from '../image-processing/image-processing.types.js';
 
 @Controller('jobs')
 export class JobsController {
@@ -27,15 +28,12 @@ export class JobsController {
         @Body() dto: CreateJobDto
     ): Promise<StreamableFile>  {
         console.log('[JobsController] POST /jobs');
-        // console.log('[JobsController] dto:', dto);
-        // console.log('[JobsController] file:', {
-        //     originalName: file?.originalname,
-        //     mimetype: file?.mimetype,
-        //     size: file?.size,
-        //   });
           
+        console.log('[1] JobsController.create()');
         const outputBuffer = await this.jobsService.create(dto, file);
         
+        console.log('[7] Controller got outputBuffer');
+
         return new StreamableFile(outputBuffer, {
             type: this.getMimeType(dto.outputFormat),
             disposition: `attachment; filename="processed.${dto.outputFormat}"`,
@@ -43,15 +41,15 @@ export class JobsController {
         // return this.jobsService.create(dto, file);
     }
 
-    private getMimeType(format: OutputFormat): string {
+    private getMimeType(format: ImageOutputFormat): string {
         switch (format) {
-          case OutputFormat.JPEG:
+          case ImageOutputFormat.JPEG:
             return 'image/jpeg';
     
-          case OutputFormat.PNG:
+          case ImageOutputFormat.PNG:
             return 'image/png';
     
-          case OutputFormat.WEBP:
+          case ImageOutputFormat.WEBP:
             return 'image/webp';
         }
       }

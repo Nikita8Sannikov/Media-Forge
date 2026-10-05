@@ -1,11 +1,6 @@
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, Max, Min } from "class-validator";
-
-export enum OutputFormat {
-    JPEG = 'jpeg',
-    PNG = 'png',
-    WEBP = 'webp',
-}
+import { ImageOutputFormat } from "../../image-processing/image-processing.types.js";
 
 export class CreateJobDto {
     @Type(() => Number)
@@ -20,8 +15,8 @@ export class CreateJobDto {
     @Max(10000)
     height!: number;
 
-    @IsEnum(OutputFormat)
-    outputFormat!: OutputFormat;
+    @IsEnum(ImageOutputFormat)
+    outputFormat!: ImageOutputFormat;
 
     @Type(() => Number)
     @IsInt()
