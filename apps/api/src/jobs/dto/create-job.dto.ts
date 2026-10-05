@@ -1,3 +1,4 @@
+import { Type } from "class-transformer";
 import { IsEnum, IsInt, Max, Min } from "class-validator";
 
 export enum OutputFormat {
@@ -7,11 +8,13 @@ export enum OutputFormat {
 }
 
 export class CreateJobDto {
+    @Type(() => Number)
     @IsInt()
     @Min(1)
     @Max(10000)
     width!: number;
 
+    @Type(() => Number)
     @IsInt()
     @Min(1)
     @Max(10000)
@@ -20,6 +23,7 @@ export class CreateJobDto {
     @IsEnum(OutputFormat)
     outputFormat!: OutputFormat;
 
+    @Type(() => Number)
     @IsInt()
     @Min(1)
     @Max(100)
