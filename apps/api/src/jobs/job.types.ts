@@ -6,16 +6,16 @@ export enum JobStatus {
   FAILED = 'failed',
 }
 
-export interface Job {
-  id: string;
-  status: JobStatus;
+// export interface Job {
+//   id: string;
+//   status: JobStatus;
 
-  originalFileName: string;
-  outputFormat: ImageOutputFormat;
+//   originalFileName: string;
+//   outputFormat: ImageOutputFormat;
 
-  width: number;
-  height: number;
-  quality: number;
+//   width: number;
+//   height: number;
+//   quality: number;
 
-  outputSize?: number;
-}
+//   outputSize?: number;
+// }

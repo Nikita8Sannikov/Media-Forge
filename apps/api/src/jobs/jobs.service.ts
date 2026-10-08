@@ -1,20 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto.js';
 import { ImageProcessingService } from '../image-processing/image-processing.service.js';
-import { Job, JobStatus } from './job.types.js';
+import { JobStatus } from './job.types.js';
 import { randomUUID } from 'node:crypto';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { Job } from '../generated/prisma/client.js';
 
 @Injectable()
 export class JobsService {
-  private readonly jobs = new Map<string, Job>();
+  // private readonly jobs = new Map<string, Job>();
   private readonly outputs = new Map<string, Buffer>();
 
   constructor(
     private readonly imageProcessingService: ImageProcessingService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async create(dto: CreateJobDto, file: Express.Multer.File): Promise<Job> {
-    console.log('[2] JobsService.create()');
+    console.log('[JobsService] creating job in PostgreSQL');
 
     console.log('[JobsService] received file:', {
       originalName: file.originalname,
@@ -24,41 +27,70 @@ export class JobsService {
 
     const id = randomUUID();
 
-    const job: Job = {
-      id,
-      status: JobStatus.PROCESSING,
+    const job = await this.prisma.job.create({
+      data: {
+        status: JobStatus.PROCESSING,
 
-      originalFileName: file.originalname,
-      outputFormat: dto.outputFormat,
+        originalFileName: file.originalname,
+        outputFormat: dto.outputFormat,
 
-      width: dto.width,
-      height: dto.height,
-      quality: dto.quality,
-    };
+        width: dto.width,
+        height: dto.height,
+        quality: dto.quality,
+      },
+    });
 
-    this.jobs.set(id, job);
+    console.log('[JobsService] job created:', job.id);
+    try {
+      const outputBuffer = await this.imageProcessingService.process(
+        file.buffer,
+        dto,
+      );
 
-    console.log('[3] Job created:', job);
+      this.outputs.set(id, outputBuffer);
 
+      // job.status = JobStatus.COMPLETED;
+      // job.outputSize = outputBuffer.length;
 
-    const outputBuffer = await this.imageProcessingService.process(
-      file.buffer,
-      dto,
-    );
+      // console.log('[7] Job completed:', job);
 
-    this.outputs.set(id, outputBuffer);
+      // return job;
+      const completedJob = await this.prisma.job.update({
+        where: {
+          id: job.id,
+        },
 
-    job.status = JobStatus.COMPLETED;
-    job.outputSize = outputBuffer.length;
+        data: {
+          status: JobStatus.COMPLETED,
+          outputSize: outputBuffer.length,
+        },
+      });
 
-    console.log('[7] Job completed:', job);
+      console.log('[JobsService] job completed:', completedJob.id);
 
-    return job;
+      return completedJob;
+    } catch (error) {
+      await this.prisma.job.update({
+        where: {
+          id: job.id,
+        },
+
+        data: {
+          status: JobStatus.FAILED,
+        },
+      });
+
+      throw error;
+    }
   }
 
-  findOne(id: string): Job {
-    const job = this.jobs.get(id);
-
+  async findOne(id: string): Promise<Job> {
+    const job = await this.prisma.job.findUnique({
+      where: {
+        id,
+      },
+    });
+    
     if (!job) {
       throw new NotFoundException(`Job ${id} not found`);
     }

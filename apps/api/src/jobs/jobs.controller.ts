@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpStatus,
+  InternalServerErrorException,
   Param,
   ParseFilePipeBuilder,
   Post,
@@ -16,7 +17,7 @@ import type { Express } from 'express';
 import { JobsService } from './jobs.service.js';
 import { CreateJobDto } from './dto/create-job.dto.js';
 import { ImageOutputFormat } from '../image-processing/image-processing.types.js';
-import type { Job } from './job.types.js';
+import type { Job } from '../generated/prisma/client.js';
 
 @Controller('jobs')
 export class JobsController {
@@ -52,17 +53,17 @@ export class JobsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Job {
+  async findOne(@Param('id') id: string): Promise<Job> {
     console.log('[Controller] GET job:', id);
 
     return this.jobsService.findOne(id);
   }
 
   @Get(':id/download')
-  download(@Param('id') id: string): StreamableFile {
+  async download(@Param('id') id: string): Promise<StreamableFile> {
     console.log('[Controller] download job:', id);
 
-    const job = this.jobsService.findOne(id);
+    const job = await this.jobsService.findOne(id);
     const outputBuffer = this.jobsService.getOutput(id);
 
     return new StreamableFile(outputBuffer, {
@@ -71,7 +72,7 @@ export class JobsController {
     });
   }
 
-  private getMimeType(format: ImageOutputFormat): string {
+  private getMimeType(format: string): string {
     switch (format) {
       case ImageOutputFormat.JPEG:
         return 'image/jpeg';
@@ -81,6 +82,11 @@ export class JobsController {
 
       case ImageOutputFormat.WEBP:
         return 'image/webp';
+
+      default:
+        throw new InternalServerErrorException(
+          `Unknown output format: ${format}`,
+        );
     }
   }
 }
