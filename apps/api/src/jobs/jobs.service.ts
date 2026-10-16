@@ -5,6 +5,7 @@ import { JobStatus } from './job.types.js';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Job } from '../generated/prisma/client.js';
+import { ObjectStorageService } from '../object-storage/object-storage.service.js';
 
 @Injectable()
 export class JobsService {
@@ -14,6 +15,7 @@ export class JobsService {
   constructor(
     private readonly imageProcessingService: ImageProcessingService,
     private readonly prisma: PrismaService,
+    private readonly objectStorageService: ObjectStorageService,
   ) {}
 
   async create(dto: CreateJobDto, file: Express.Multer.File): Promise<Job> {
@@ -42,6 +44,16 @@ export class JobsService {
 
     console.log('[JobsService] job created:', job.id);
     try {
+      const inputObjectKey = `jobs/${job.id}/input/original`;
+
+      const uploadedInputObjectKey = await this.objectStorageService.putObject(
+        inputObjectKey,
+        file.buffer,
+        file.mimetype,
+      );
+
+      console.log('[JobsService] input uploaded:', uploadedInputObjectKey);
+
       const outputBuffer = await this.imageProcessingService.process(
         file.buffer,
         dto,
@@ -90,7 +102,7 @@ export class JobsService {
         id,
       },
     });
-    
+
     if (!job) {
       throw new NotFoundException(`Job ${id} not found`);
     }

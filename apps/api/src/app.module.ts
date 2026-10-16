@@ -6,12 +6,13 @@ import { AppService } from './app.service.js';
 import { JobsModule } from './jobs/jobs.module.js';
 import { ImageProcessingModule } from './image-processing/image-processing.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { ObjectStorageModule } from './object-storage/object-storage.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
   }),
-   JobsModule, PrismaModule, ImageProcessingModule],
+   JobsModule, PrismaModule, ImageProcessingModule, ObjectStorageModule],
   controllers: [AppController],
   providers: [AppService],
 })

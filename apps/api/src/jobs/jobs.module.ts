@@ -3,9 +3,10 @@ import { JobsController } from './jobs.controller.js';
 import { JobsService } from './jobs.service.js';
 import { ImageProcessingModule } from '../image-processing/image-processing.module.js';
 import { PrismaModule } from '../prisma/prisma.module.js';
+import { ObjectStorageModule } from '../object-storage/object-storage.module.js';
 
 @Module({
-  imports: [ImageProcessingModule, PrismaModule],
+  imports: [ImageProcessingModule, PrismaModule, ObjectStorageModule],
   controllers: [JobsController],
   providers: [JobsService]
 })
