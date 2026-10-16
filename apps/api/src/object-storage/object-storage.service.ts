@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+    GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -59,5 +60,25 @@ export class ObjectStorageService {
     await this.client.send(command);
 
     return key;
+  }
+
+  async getObject(key: string): Promise<Buffer> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+
+    const response = await this.client.send(command);
+
+    if (!response.Body) {
+      throw new Error(
+        `Object ${key} returned without a body`,
+      );
+    }
+
+    const bytes =
+      await response.Body.transformToByteArray();
+
+    return Buffer.from(bytes);
   }
 }

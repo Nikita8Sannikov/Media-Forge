@@ -63,8 +63,11 @@ export class JobsController {
   async download(@Param('id') id: string): Promise<StreamableFile> {
     console.log('[Controller] download job:', id);
 
-    const job = await this.jobsService.findOne(id);
-    const outputBuffer = this.jobsService.getOutput(id);
+    // const job = await this.jobsService.findOne(id);
+    const {
+      job,
+      outputBuffer,
+    }  = await this.jobsService.getOutput(id);
 
     return new StreamableFile(outputBuffer, {
       type: this.getMimeType(job.outputFormat),

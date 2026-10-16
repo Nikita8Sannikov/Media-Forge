@@ -23,6 +23,7 @@ model Job {
   outputSize       Int?
 
   inputObjectKey   String?
+  outputObjectKey  String?
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

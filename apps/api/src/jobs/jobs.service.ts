@@ -10,7 +10,7 @@ import { ObjectStorageService } from '../object-storage/object-storage.service.j
 @Injectable()
 export class JobsService {
   // private readonly jobs = new Map<string, Job>();
-  private readonly outputs = new Map<string, Buffer>();
+  // private readonly outputs = new Map<string, Buffer>();
 
   constructor(
     private readonly imageProcessingService: ImageProcessingService,
@@ -27,7 +27,7 @@ export class JobsService {
       size: file.size,
     });
 
-    const id = randomUUID();
+    // const id = randomUUID();
 
     const job = await this.prisma.job.create({
       data: {
@@ -60,7 +60,7 @@ export class JobsService {
         },
         data: {
           inputObjectKey: uploadedInputObjectKey,
-        }
+        },
       });
 
       const outputBuffer = await this.imageProcessingService.process(
@@ -68,7 +68,14 @@ export class JobsService {
         dto,
       );
 
-      this.outputs.set(id, outputBuffer);
+      // this.outputs.set(id, outputBuffer);
+      const outputObjectKey = `jobs/${job.id}/output/processed.${dto.outputFormat}`;
+
+      const uploadedOutputObjectKey = await this.objectStorageService.putObject(
+        outputObjectKey,
+        outputBuffer,
+        `image/${dto.outputFormat}`,
+      );
 
       // job.status = JobStatus.COMPLETED;
       // job.outputSize = outputBuffer.length;
@@ -84,6 +91,7 @@ export class JobsService {
         data: {
           status: JobStatus.COMPLETED,
           outputSize: outputBuffer.length,
+          outputObjectKey: uploadedOutputObjectKey,
         },
       });
 
@@ -119,13 +127,26 @@ export class JobsService {
     return job;
   }
 
-  getOutput(id: string): Buffer {
-    const output = this.outputs.get(id);
+  async getOutput(id: string): Promise<{ job: Job; outputBuffer: Buffer }> {
+    // const output = this.outputs.get(id);
+    const job = await this.findOne(id);
 
-    if (!output) {
+    if (!job.outputObjectKey) {
       throw new NotFoundException(`Output for job ${id} not found`);
     }
 
-    return output;
+    // if (!output) {
+    //   throw new NotFoundException(`Output for job ${id} not found`);
+    // }
+
+    const outputBuffer = await this.objectStorageService.getObject(
+      job.outputObjectKey,
+    );
+
+    // return output;
+    return {
+      job,
+      outputBuffer,
+    };
   }
 }
