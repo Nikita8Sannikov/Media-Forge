@@ -54,6 +54,15 @@ export class JobsService {
 
       console.log('[JobsService] input uploaded:', uploadedInputObjectKey);
 
+      await this.prisma.job.update({
+        where: {
+          id: job.id,
+        },
+        data: {
+          inputObjectKey: uploadedInputObjectKey,
+        }
+      });
+
       const outputBuffer = await this.imageProcessingService.process(
         file.buffer,
         dto,
