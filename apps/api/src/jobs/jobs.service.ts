@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Job } from '../generated/prisma/client.js';
 import { ObjectStorageService } from '../object-storage/object-storage.service.js';
+import { KafkaProducerService } from '../kafka/kafka-producer/kafka-producer.service.js';
 
 @Injectable()
 export class JobsService {
@@ -16,6 +17,7 @@ export class JobsService {
     private readonly imageProcessingService: ImageProcessingService,
     private readonly prisma: PrismaService,
     private readonly objectStorageService: ObjectStorageService,
+    private readonly kafkaProducerService: KafkaProducerService,
   ) {}
 
   async create(dto: CreateJobDto, file: Express.Multer.File): Promise<Job> {
@@ -61,6 +63,15 @@ export class JobsService {
         data: {
           inputObjectKey: uploadedInputObjectKey,
         },
+      });
+
+      this.kafkaProducerService.publishJobProcessRequested({
+        jobId: job.id,
+        inputObjectKey: uploadedInputObjectKey,
+        width: dto.width,
+        height: dto.height,
+        outputFormat: dto.outputFormat,
+        quality: dto.quality,
       });
 
       const outputBuffer = await this.imageProcessingService.process(
