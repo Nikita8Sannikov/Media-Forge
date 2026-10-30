@@ -16,7 +16,7 @@ import type { Express } from 'express';
 
 import { JobsService } from './jobs.service.js';
 import { CreateJobDto } from './dto/create-job.dto.js';
-import { ImageOutputFormat } from '../image-processing/image-processing.types.js';
+import { ImageOutputFormat } from './job.types.js';
 import type { Job } from '../generated/prisma/client.js';
 
 @Controller('jobs')

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto.js';
-import { ImageProcessingService } from '../image-processing/image-processing.service.js';
+// import { ImageProcessingService } from '../image-processing/image-processing.service.js';
 import { JobStatus } from './job.types.js';
-import { randomUUID } from 'node:crypto';
+// import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Job } from '../generated/prisma/client.js';
 import { ObjectStorageService } from '../object-storage/object-storage.service.js';
@@ -15,7 +15,7 @@ export class JobsService {
   // private readonly outputs = new Map<string, Buffer>();
 
   constructor(
-    private readonly imageProcessingService: ImageProcessingService,
+    // private readonly imageProcessingService: ImageProcessingService,
     private readonly prisma: PrismaService,
     private readonly objectStorageService: ObjectStorageService,
     private readonly kafkaProducerService: KafkaProducerService,
@@ -57,7 +57,7 @@ export class JobsService {
 
       console.log('[JobsService] input uploaded:', uploadedInputObjectKey);
 
-      await this.prisma.job.update({
+      const updatedJob = await this.prisma.job.update({
         where: {
           id: job.id,
         },
@@ -75,19 +75,19 @@ export class JobsService {
         quality: dto.quality,
       });
 
-      const outputBuffer = await this.imageProcessingService.process(
-        file.buffer,
-        dto,
-      );
+      // const outputBuffer = await this.imageProcessingService.process(
+      //   file.buffer,
+      //   dto,
+      // );
 
       // this.outputs.set(id, outputBuffer);
-      const outputObjectKey = `jobs/${job.id}/output/processed.${dto.outputFormat}`;
+      // const outputObjectKey = `jobs/${job.id}/output/processed.${dto.outputFormat}`;
 
-      const uploadedOutputObjectKey = await this.objectStorageService.putObject(
-        outputObjectKey,
-        outputBuffer,
-        `image/${dto.outputFormat}`,
-      );
+      // const uploadedOutputObjectKey = await this.objectStorageService.putObject(
+      //   outputObjectKey,
+      //   outputBuffer,
+      //   `image/${dto.outputFormat}`,
+      // );
 
       // job.status = JobStatus.COMPLETED;
       // job.outputSize = outputBuffer.length;
@@ -95,21 +95,22 @@ export class JobsService {
       // console.log('[7] Job completed:', job);
 
       // return job;
-      const completedJob = await this.prisma.job.update({
-        where: {
-          id: job.id,
-        },
+      // const completedJob = await this.prisma.job.update({
+      //   where: {
+      //     id: job.id,
+      //   },
 
-        data: {
-          status: JobStatus.COMPLETED,
-          outputSize: outputBuffer.length,
-          outputObjectKey: uploadedOutputObjectKey,
-        },
-      });
+      //   data: {
+      //     status: JobStatus.COMPLETED,
+      //     outputSize: outputBuffer.length,
+      //     outputObjectKey: uploadedOutputObjectKey,
+      //   },
+      // });
 
-      console.log('[JobsService] job completed:', completedJob.id);
+      // console.log('[JobsService] job completed:', completedJob.id);
 
-      return completedJob;
+      // return completedJob;
+      return updatedJob;
     } catch (error) {
       await this.prisma.job.update({
         where: {
@@ -171,7 +172,7 @@ export class JobsService {
       },
 
       data: {
-        status: 'completed',
+        status: JobStatus.COMPLETED,
         outputObjectKey: event.outputObjectKey,
         outputSize: event.outputSize,
       },

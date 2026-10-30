@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, Max, Min } from "class-validator";
-import { ImageOutputFormat } from "../../image-processing/image-processing.types.js";
+import { ImageOutputFormat } from "../job.types.js";
 
 export class CreateJobDto {
     @Type(() => Number)
