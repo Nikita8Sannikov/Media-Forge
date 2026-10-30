@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { Job } from '../generated/prisma/client.js';
 import { ObjectStorageService } from '../object-storage/object-storage.service.js';
 import { KafkaProducerService } from '../kafka/kafka-producer/kafka-producer.service.js';
+import type { JobProcessCompletedEvent } from '@mediaforge/contracts';
 
 @Injectable()
 export class JobsService {
@@ -159,5 +160,23 @@ export class JobsService {
       job,
       outputBuffer,
     };
+  }
+
+  async handleJobProcessCompleted(
+    event: JobProcessCompletedEvent,
+  ): Promise<void> {
+    await this.prisma.job.update({
+      where: {
+        id: event.jobId,
+      },
+
+      data: {
+        status: 'completed',
+        outputObjectKey: event.outputObjectKey,
+        outputSize: event.outputSize,
+      },
+    });
+
+    console.log('[JobsService] job completed from worker:', event.jobId);
   }
 }

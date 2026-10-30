@@ -6,10 +6,11 @@ import { PrismaModule } from '../prisma/prisma.module.js';
 import { ObjectStorageModule } from '../object-storage/object-storage.module.js';
 import { KafkaProducerService } from '../kafka/kafka-producer/kafka-producer.service.js';
 import { KafkaModule } from '../kafka/kafka.module.js';
+import { JobsEventsController } from './jobs-events.controller.js';
 
 @Module({
   imports: [ImageProcessingModule, PrismaModule, ObjectStorageModule, KafkaModule],
-  controllers: [JobsController],
+  controllers: [JobsController, JobsEventsController],
   providers: [JobsService]
 })
 export class JobsModule {}
