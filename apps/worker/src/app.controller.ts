@@ -4,6 +4,7 @@ import type { JobProcessRequestedEvent } from '@mediaforge/contracts';
 import { ObjectStorageService } from './object-storage/object-storage.service.js';
 import { ImageProcessingService } from './image-processing/image-processing.service.js';
 import { KafkaProducerService } from './kafka/kafka-producer/kafka-producer.service.js';
+import { JOBS_PROCESS_REQUESTED_TOPIC } from './kafka/kafka.constants.js';
 
 @Controller()
 export class AppController {
@@ -12,7 +13,7 @@ export class AppController {
     private readonly imageProcessingService: ImageProcessingService,
     private readonly kafkaProducerService: KafkaProducerService,
   ) {}
-  @EventPattern('jobs.process.requested')
+  @EventPattern(JOBS_PROCESS_REQUESTED_TOPIC)
   async handleJobProcessRequested(
     @Payload() event: JobProcessRequestedEvent,
   ): Promise<void> {

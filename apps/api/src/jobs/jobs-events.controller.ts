@@ -9,7 +9,7 @@ import { JobsService } from './jobs.service.js';
 import {
   JOBS_PROCESS_COMPLETED_TOPIC,
   JOBS_PROCESS_FAILED_TOPIC,
-} from './jobs.constants.js';
+} from '../kafka/kafka.constants.js';
 
 @Controller()
 export class JobsEventsController {
