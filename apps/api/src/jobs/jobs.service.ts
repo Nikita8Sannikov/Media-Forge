@@ -7,7 +7,10 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { Job } from '../generated/prisma/client.js';
 import { ObjectStorageService } from '../object-storage/object-storage.service.js';
 import { KafkaProducerService } from '../kafka/kafka-producer/kafka-producer.service.js';
-import type { JobProcessCompletedEvent, JobProcessFailedEvent } from '@mediaforge/contracts';
+import type {
+  JobProcessCompletedEvent,
+  JobProcessFailedEvent,
+} from '@mediaforge/contracts';
 
 @Injectable()
 export class JobsService {
@@ -119,6 +122,7 @@ export class JobsService {
 
         data: {
           status: JobStatus.FAILED,
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
         },
       });
 
@@ -189,6 +193,7 @@ export class JobsService {
 
       data: {
         status: JobStatus.FAILED,
+        errorMessage: event.error,
       },
     });
 

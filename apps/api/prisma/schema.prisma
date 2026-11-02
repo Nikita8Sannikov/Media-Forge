@@ -21,6 +21,7 @@ model Job {
   height           Int
   quality          Int
   outputSize       Int?
+  errorMessage     String?
 
   inputObjectKey   String?
   outputObjectKey  String?
