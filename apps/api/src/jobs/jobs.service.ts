@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { Job } from '../generated/prisma/client.js';
 import { ObjectStorageService } from '../object-storage/object-storage.service.js';
 import { KafkaProducerService } from '../kafka/kafka-producer/kafka-producer.service.js';
-import type { JobProcessCompletedEvent } from '@mediaforge/contracts';
+import type { JobProcessCompletedEvent, JobProcessFailedEvent } from '@mediaforge/contracts';
 
 @Injectable()
 export class JobsService {
@@ -179,5 +179,23 @@ export class JobsService {
     });
 
     console.log('[JobsService] job completed from worker:', event.jobId);
+  }
+
+  async handleJobProcessFailed(event: JobProcessFailedEvent): Promise<void> {
+    await this.prisma.job.update({
+      where: {
+        id: event.jobId,
+      },
+
+      data: {
+        status: JobStatus.FAILED,
+      },
+    });
+
+    console.log(
+      '[JobsService] job failed from worker:',
+      event.jobId,
+      event.error,
+    );
   }
 }

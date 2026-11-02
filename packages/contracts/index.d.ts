@@ -16,3 +16,8 @@ export interface JobProcessCompletedEvent {
   outputObjectKey: string;
   outputSize: number;
 }
+
+export interface JobProcessFailedEvent {
+  jobId: string;
+  error: string;
+}
